@@ -45,7 +45,7 @@ p_gci_ka_all_years <- ggplot() +
   geom_sf(data = ka_sf, aes(), fill = NA, color = "white") +
   scale_fill_manual(values = rev(gci_colors)) +
   facet_wrap(~lyr, nrow = 3)
-ggsave('GCI_Karnataka_allyears.png',p_gci_ka_all_years, path = out_path, width = 12, height = 10)
+ggsave('GCI_Karnataka_allyears.png',p_gci_ka_all_years, path = out_path, width = 14, height = 10)
 
 gci_ka_diff_2001 <- gci_ka - gci_ka$gci2001
 p_gci_ka_all_years_diff <- ggplot() + 
@@ -53,7 +53,7 @@ p_gci_ka_all_years_diff <- ggplot() +
   geom_sf(data = ka_sf, aes(), fill = NA, color = "gray") +
   scale_fill_gradient2() +
   facet_wrap(~lyr, nrow = 3)
-ggsave('GCI_Karnataka_allyears_diff_2001.png',p_gci_ka_all_years_diff, path = out_path, width = 12, height = 10)
+ggsave('GCI_Karnataka_allyears_diff_2001.png',p_gci_ka_all_years_diff, path = out_path, width = 14, height = 10)
 
 
 #################################################################
@@ -63,35 +63,31 @@ ggsave('GCI_Karnataka_allyears_diff_2001.png',p_gci_ka_all_years_diff, path = ou
 #################################################################
 
 
-r_karur_change <- r_karur
+# r_karur_change <- r_karur
+# 
+# for (i in 2:nlayers(r_karur)) {
+#   r_karur_change[[i]][r_karur[[1]] == r_karur[[i]]] <- NA
+# }
 
-for (i in 2:nlayers(r_karur)) {
-  r_karur_change[[i]][r_karur[[1]] == r_karur[[i]]] <- NA
-}
+# 
+# png(file.path(out_path, paste0("karur_crops_",6+2014,".png")), width = 1200, height = 800)
+# plot(r_karur[[6]])
+# dev.off()
+# 
+# for (i in 1:nlayers(r_karur)){
+#   png(file.path(out_path, paste0("karur_crops_change_",i+2014,".png")), width = 1200, height = 800)
+#   plot(r_karur_change[[i]])
+#   dev.off()
+# }
 
-
-png(file.path(out_path, paste0("karur_crops_",6+2014,".png")), width = 1200, height = 800)
-plot(r_karur[[6]])
-dev.off()
-
-for (i in 1:nlayers(r_karur)){
-  png(file.path(out_path, paste0("karur_crops_change_",i+2014,".png")), width = 1200, height = 800)
-  plot(r_karur_change[[i]])
-  dev.off()
-}
-
-# names(r_karur_change) <- gsub
-# plot(r_karur_change)
-# RStoolbox::ggR(r_karur$X1_crops, geom_raster = TRUE) +
-#   scale_fill_continuous()
+gci_ka_dt <- as.data.table(as.data.frame(gci_ka))
 
 
-karur_df <- as_tibble(as.data.frame(r_karur))
+# across(.cols = )
 
+# ggplot(karur_dt) + geom_raster(aes(x,y, fill= plot_highlight))
 
-ggplot(karur_dt) + geom_raster(aes(x,y, fill= plot_highlight))
-
-karur_df_count_wide <- karur_df %>% 
+karur_df_count_wide <- gci_ka_df %>% 
   # dplyr::select(-y,-y) %>%
   group_by(across(everything())) %>%
   summarize(n = n()) %>%
@@ -99,7 +95,7 @@ karur_df_count_wide <- karur_df %>%
   ungroup() %>%
   mutate(id=row_number()) %>%
   rowwise() %>%
-  mutate(crop_order = paste(c_across(starts_with("X")), collapse = "_")) %>%
+  mutate(crop_order = paste(c_across(starts_with("gci")), collapse = "_")) %>%
   group_by(X0_crops) %>%
   arrange(X0_crops, desc(n)) %>%
   mutate(id_2015=row_number()) %>%
