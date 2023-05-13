@@ -31,21 +31,29 @@ gci_yr_path <- gci_filepaths[1]
 read_gci_crop <- function(gci_yr_path, crop_sf) {
   gci_yr_world <- rast(gci_yr_path)
   gci_yr_crop <- terra::crop(gci_yr_world, vect(crop_sf))
+  names(gci_yr_crop) <- gsub(".*GCI_([0-9]+).tif","gci\\1",gci_yr_path)
   return(gci_yr_crop)
 }
 
 gci_ka_list <- lapply(gci_filepaths, read_gci_crop, crop_sf = ka_sf)
-
-gci_ka_1 <- gci_ka_list[[1]]
-names(gci_ka_1) <- "hello"
+gci_ka <- do.call(c,gci_ka_list)
 
 gci_colors <- c("forestgreen","lightgreen","gold2","tan")
 
-ggplot() + 
-  geom_spatraster(data = gci_yr_ka, aes(fill = OID)) +
+p_gci_ka_all_years <- ggplot() + 
+  geom_spatraster(data = gci_ka, aes()) +
   geom_sf(data = ka_sf, aes(), fill = NA, color = "white") +
-  scale_fill_manual(values = rev(gci_colors))
+  scale_fill_manual(values = rev(gci_colors)) +
+  facet_wrap(~lyr, nrow = 3)
+ggsave('GCI_Karnataka_allyears.png',p_gci_ka_all_years, path = out_path, width = 12, height = 10)
 
+gci_ka_diff_2001 <- gci_ka - gci_ka$gci2001
+p_gci_ka_all_years_diff <- ggplot() + 
+  geom_spatraster(data = gci_ka_diff_2001, aes()) +
+  geom_sf(data = ka_sf, aes(), fill = NA, color = "gray") +
+  scale_fill_gradient2() +
+  facet_wrap(~lyr, nrow = 3)
+ggsave('GCI_Karnataka_allyears_diff_2001.png',p_gci_ka_all_years_diff, path = out_path, width = 12, height = 10)
 
 
 #################################################################
