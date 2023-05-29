@@ -82,6 +82,13 @@ ggsave('GCI_Karnataka_allyears_diff_2001.png',p_gci_ka_all_years_diff, path = ou
 
 gci_ka_dt <- as.data.table(as.data.frame(gci_ka))
 
+gci_colnames <- names(gci_ka)
+
+
+gci_ka_pattern <- gci_ka_dt[, .N, by = gci_colnames]
+gci_ka_pattern <- gci_ka_pattern[order(-N)]
+
+gci_ka_pattern[N > 1000, count := sum(N)]
 
 # across(.cols = )
 
@@ -101,37 +108,34 @@ karur_df_count_wide <- gci_ka_df %>%
   mutate(id_2015=row_number()) %>%
   filter(id_2015 <= 10)
 
-karur_count <- karur_df_count_wide %>% 
-  ungroup() %>%
-  mutate(across(starts_with("X"),
-                function(x) factor(x, levels = 3:0))) %>% #, labels = c("Triple","Double","Single","Fallow")))) %>%
-  mutate(plot_highlight = dplyr::case_when(
-           grepl("3_3_3", crop_order) ~ "-3-3-3-",
-           grepl("2", crop_order) ~ "-2-",
-           grepl("1_1_1", crop_order) ~ "-1-1-1-",
-           grepl("0_0_0_0", crop_order) ~ "-0-0-0-0-",
-           TRUE ~ "-x-"
-         ),
-         plot_highlight = factor(plot_highlight, levels = c("-3-3-3-", "-2-","-1-1-1-","-0-0-0-0-","-x-")),
-         crop_2015 = X0_crops) %>%
-  pivot_longer(cols = starts_with("X"), names_to = "varname", values_to = "crop") %>%
-  group_by(id) %>%
-  mutate(num_unique = length(unique(crop)),
-         year = as.numeric(gsub("X([0-9]+)_.*","\\1",varname))+2015) %>%
-  filter(num_unique > 1 | crop != "Fallow")
 
-# grepl("0_0_0_0", karur_count$crop_order)
+gci_ka_pattern[N > 1000, count := sum(N)]
+
+gci_ka_pattern[, count := sum(N)]
+gci_ka_pattern[, frac := N / count]
+gci_ka_pattern[, id := 1:.N]
 
 
-p_karur_alluvial <- ggplot(karur_count,
-       aes(x = year, y = n * 900 / 1e4, stratum = crop, alluvium = id,
+gci_ka_pattern_long <- melt(gci_ka_pattern, id.vars = c("N","count","frac","id"), measure_vars = gci_colnames, value.name = "crop")
+gci_ka_pattern_long[, year := gsub("gci","",variable)]
+gci_ka_pattern_long[, avg_ci := mean(as.numeric(crop)), by = "id"]
+
+gci_ka_pattern_long[frac > 0.001]
+
+gci_ka_pattern[frac>0.00001, .N]
+p_karur_alluvial <- ggplot(as_tibble(gci_ka_pattern_long[frac>0.00001 & frac < 0.08]),
+       aes(x = year, y = frac * 100, stratum = crop, alluvium = id,
            label = crop)) +
-  scale_fill_manual("Select\nmulti-year\npatterns",values = c("forestgreen","lightgreen","gold2","tan","gray"), 
-                    guide = guide_legend(order = 2)) +
+  scale_fill_viridis_c() +
+  # scale_fill_manual("Select\nmulti-year\npatterns",values = c("forestgreen","lightgreen","gold2","tan","gray"), 
+  #                   guide = guide_legend(order = 2)) +
   geom_flow(stat = "alluvium", lode.guidance = "frontback",
-            color = "darkgray", aes(fill = plot_highlight)) +
+            color = "darkgray", aes(fill = avg_ci)) +
   ggnewscale::new_scale_fill() +
   geom_stratum(aes(fill = crop)) +
+  scale_fill_viridis_d()
+p_karur_alluvial
+  
   scale_fill_manual('Annual\ncropping\nintensity',values = c("forestgreen","lightgreen","gold2","tan"), 
                     guide = guide_legend(order = 1)) +
   # geom_text(stat = "stratum", aes(label = after_stat(stratum)))
@@ -145,7 +149,7 @@ p_karur_alluvial <- ggplot(karur_count,
         legend.title = element_text(size = 10))
 p_karur_alluvial
 
-ggsave("karur_alluvial.png", p_karur_alluvial, width = 5, height = 2.25, path = out_path)
+ggsave("karur_alluvial_frac_gt_1e-5.png", p_karur_alluvial, width = 16, height = 12, path = out_path)
 
 ggp::obj_size(karur_df)
 
