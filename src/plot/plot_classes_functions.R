@@ -8,11 +8,7 @@ library(data.table)
 library(sf)
 
 
-# # ADMIN BOUNDARIES
-# gadm_ind_path <- "~/Projects/Data/gadm/IND_adm_shp/IND_adm1.shp"
-# ind_sf <- st_read(gadm_ind_path)
-# ka_sf <- ind_sf %>% dplyr::filter(grepl("Karnataka",NAME_1))
-out_path <- ggp::fig_set_output("plot_classes_functions")
+# out_path <- ggp::fig_set_output("plot_classes_functions")
 
 
 read_gci_crop <- function(gci_yr_path, crop_sf, type_func = NULL) {
@@ -37,7 +33,7 @@ read_gci_allyears_boundary <- function(gci_path, crop_sf, type_func = NULL) {
 
 
 
-plot_gci_all_years <- function(place_name, gci_ka, crop_sf, nrow) {
+plot_gci_all_years <- function(place_name, gci_ka, crop_sf, out_path, nrow) {
   gci_colors <- c("forestgreen", "lightgreen", "gold2", "tan")
 
   p_gci_ka_all_years <- ggplot() +
@@ -51,13 +47,13 @@ plot_gci_all_years <- function(place_name, gci_ka, crop_sf, nrow) {
   p_gci_ka_all_years
 }
 
-plot_gci_change_all_years <- function(place_name, gci_ka, crop_sf, nrow) {
+plot_gci_change_all_years <- function(place_name, gci_ka, crop_sf, out_path, nrow) {
   gci_ka_diff_2001 <- gci_ka - gci_ka$gci2001
   p_gci_ka_all_years_diff <- ggplot() +
     geom_spatraster(data = gci_ka_diff_2001, aes()) +
     geom_sf(data = crop_sf, aes(), fill = NA, color = "gray") +
     scale_fill_gradient2() +
-    facet_wrap(~lyr, nrow = 4)
+    facet_wrap(~lyr, nrow = nrow)
   cat("Saving maps of diff of all years...")
   ggsave(paste0("GCI_",place_name,"_allyears_diff_2001.png"),
     p_gci_ka_all_years_diff, path = out_path, width = 14, height = 10)
@@ -65,32 +61,7 @@ plot_gci_change_all_years <- function(place_name, gci_ka, crop_sf, nrow) {
   p_gci_ka_all_years_diff
 }
 
-
-#################################################################
-#################################################################
-#################################################################
-#################################################################
-#################################################################
-
-
-# r_karur_change <- r_karur
-#
-# for (i in 2:nlayers(r_karur)) {
-#   r_karur_change[[i]][r_karur[[1]] == r_karur[[i]]] <- NA
-# }
-
-#
-# png(file.path(out_path, paste0("karur_crops_",6+2014,".png")), width = 1200, height = 800)
-# plot(r_karur[[6]])
-# dev.off()
-#
-# for (i in 1:nlayers(r_karur)){
-#   png(file.path(out_path, paste0("karur_crops_change_",i+2014,".png")), width = 1200, height = 800)
-#   plot(r_karur_change[[i]])
-#   dev.off()
-# }
-
-plot_gci_ggalluvial <- function(place_name, gci_ka, crop_sf, frac_range = c(0.00001, 0.08)) {
+plot_gci_ggalluvial <- function(place_name, gci_ka, crop_sf, out_path, frac_range = c(0.00001, 0.08)) {
   cat(paste0("Plotting alluvial plot...",place_name,"\n"))
   gci_ka_masked <- mask(gci_ka, crop_sf)
   # gci_ka_dt <- as.data.table(as.data.frame(gci_ka))
