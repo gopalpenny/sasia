@@ -29,3 +29,12 @@ gci_karnataka <- read_gci_allyears_boundary(gci_path, ka_sf)
 plot_gci_all_years("karnataka", gci_karnataka, ka_sf, 4)
 plot_gci_change_all_years("karnataka", gci_karnataka, ka_sf, 4)
 plot_gci_ggalluvial("karnataka", gci_karnataka, ka_sf)
+
+#### TG HALLI
+arkavathy_path <- "/Users/gopal/Projects/sasia/spatial/unmod/TGHalli/ArkavatiSubbasins.shp"
+arkavathy_sf <- st_read(arkavathy_path)
+gci_path <- "~/Projects/Data/crops/GCI_QC/"
+gci_arkavathy <- read_gci_allyears_boundary(gci_path, arkavathy_sf)
+plot_gci_all_years("arkavathy", gci_arkavathy, arkavathy_sf, 2)
+plot_gci_change_all_years("arkavathy", gci_arkavathy, arkavathy_sf, 2)
+plot_gci_ggalluvial("arkavathy", gci_arkavathy, arkavathy_sf, frac_range = c(1e-4, 0.1)

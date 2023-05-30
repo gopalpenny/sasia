@@ -15,18 +15,22 @@ library(sf)
 out_path <- ggp::fig_set_output("plot_classes_functions")
 
 
-read_gci_crop <- function(gci_yr_path, crop_sf) {
+read_gci_crop <- function(gci_yr_path, crop_sf, type_func = NULL) {
+  # gci_yr_path <- gci_filepaths[1]
   gci_yr_world <- rast(gci_yr_path)
+  if (!is.null(type_func)) {
+    gci_yr_world <- type_func(gci_yr_world)
+  }
   gci_yr_crop <- terra::crop(gci_yr_world, vect(crop_sf))
   names(gci_yr_crop) <- gsub(".*GCI_([0-9]+).tif", "gci\\1", gci_yr_path)
   return(gci_yr_crop)
 }
 
-read_gci_allyears_boundary <- function(gci_path, crop_sf) {
+read_gci_allyears_boundary <- function(gci_path, crop_sf, type_func = NULL) {
   gci_filepaths <- list.files(gci_path, pattern = "GCI.*.tif$", full.names = TRUE) # nolint
   gci_filepaths <- gci_filepaths[!grepl("_QC_", gci_filepaths)]
 
-  gci_ka_list <- lapply(gci_filepaths, read_gci_crop, crop_sf = crop_sf)
+  gci_ka_list <- lapply(gci_filepaths, read_gci_crop, crop_sf = crop_sf, type_func = type_func)
   gci_ka <- do.call(c, gci_ka_list)
   gci_ka
 }
@@ -86,7 +90,7 @@ plot_gci_change_all_years <- function(place_name, gci_ka, crop_sf, nrow) {
 #   dev.off()
 # }
 
-plot_gci_ggalluvial <- function(place_name, gci_ka, crop_sf) {
+plot_gci_ggalluvial <- function(place_name, gci_ka, crop_sf, frac_range = c(0.00001, 0.08)) {
   cat(paste0("Plotting alluvial plot...",place_name,"\n"))
   gci_ka_masked <- mask(gci_ka, crop_sf)
   # gci_ka_dt <- as.data.table(as.data.frame(gci_ka))
@@ -110,14 +114,14 @@ plot_gci_ggalluvial <- function(place_name, gci_ka, crop_sf) {
   gci_ka_pattern_long[, year := gsub("gci", "", variable)]
   gci_ka_pattern_long[, avg_ci := mean(as.numeric(crop)), by = "id"]
 
-  gci_ka_pattern_long[frac > 0.001]
+  # gci_ka_pattern_long[frac > 0.001]
 
-  gci_ka_pattern[frac > 0.00001, .N]
+  # gci_ka_pattern[frac > 0.00001, .N]
 
   top10 <- gci_ka_pattern[1:10,]
   # print(gci_ka_pattern[1:10,])
   p_kaveri_alluvial <- ggplot(
-    as_tibble(gci_ka_pattern_long[frac > 0.00001 & frac < 0.08]),
+    as_tibble(gci_ka_pattern_long[frac > frac_range[1] & frac < frac_range[2]]),
     aes(
       x = year, y = frac * 100, stratum = crop, alluvium = id,
       label = crop
@@ -141,7 +145,7 @@ plot_gci_ggalluvial <- function(place_name, gci_ka, crop_sf) {
 }
 
 
-if (TRUE) {
+if (FALSE) {
   cauvery_path <- "/Users/gopal/Projects/sasia/spatial/unmod/CauveryBasin/Cauvery_boundary5.shp"
   cauvery_sf <- st_read(cauvery_path)
 
@@ -149,8 +153,8 @@ if (TRUE) {
   gci_all <- read_gci_allyears_boundary(gci_path, cauvery_sf)
 
   place_name = 'cauvery5'
-  # plot_gci_all_years(place_name = place_name, gci_all, cauvery_sf, 4)
-  # plot_gci_change_all_years("cauvery5", gci_all, cauvery_sf, 4)
+  plot_gci_all_years(place_name = place_name, gci_all, cauvery_sf, 4)
+  plot_gci_change_all_years("cauvery5", gci_all, cauvery_sf, 4)
 
   plot_gci_ggalluvial("cauvery5", gci_all, cauvery_sf)
 }
