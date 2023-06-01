@@ -8,6 +8,8 @@ library(data.table)
 library(sf)
 source("src/plot/plot_classes_functions.R")
 
+# torch <- import("torch")
+
 out_path <- ggp::fig_set_output("plot_classes_GCI")
 
 #### Cauvery
@@ -38,4 +40,15 @@ gci_arkavathy <- read_gci_allyears_boundary(gci_path, arkavathy_sf)
 plot_gci_all_years("arkavathy", gci_arkavathy, arkavathy_sf, out_path = out_path, nrow = 2)
 plot_gci_change_all_years("arkavathy", gci_arkavathy, arkavathy_sf, out_path = out_path, nrow = 2)
 plot_gci_ggalluvial("arkavathy", gci_arkavathy, arkavathy_sf, 
+    out_path = out_path, frac_range = c(1e-4, 0.1))
+
+#### Hesaraghatta
+basin_path <- "/Users/gopal/Projects/sasia/spatial/unmod/TGHalli/Arkavathy_subwatersheds_ATREE.shp"
+hesaraghatta_sf <- st_read(basin_path)
+hesaraghatta_sf <- hesaraghatta_sf %>% dplyr::filter(Subcatch=="Hesaraghatta")
+gci_path <- "~/Projects/Data/crops/GCI_QC/"
+gci_hesaraghatta <- read_gci_allyears_boundary(gci_path, hesaraghatta_sf)
+plot_gci_all_years("hesaraghatta", gci_hesaraghatta, hesaraghatta_sf, out_path = out_path, nrow = 4)
+plot_gci_change_all_years("hesaraghatta", gci_hesaraghatta, hesaraghatta_sf, out_path = out_path, nrow = 4)
+plot_gci_ggalluvial("hesaraghatta", gci_hesaraghatta, hesaraghatta_sf, 
     out_path = out_path, frac_range = c(1e-4, 0.1))
