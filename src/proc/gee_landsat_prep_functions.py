@@ -43,13 +43,13 @@ def prep_oli8_ic(ee_geometry):
     # Get oli8 pixel timeseries
 
 # %%
-ee_geometry = ee.FeatureCollection("users/gopalpenny/cauvery/Cauvery_boundary5")
+# ee_geometry = ee.FeatureCollection("users/gopalpenny/cauvery/Cauvery_boundary5")
 
 
-# %%
-tm5 = prep_tm5_ic(ee_geometry) 
-etm7 = prep_etm7_ic(ee_geometry)
-oli8 = prep_oli8_ic(ee_geometry) 
+# # %%
+# tm5 = prep_tm5_ic(ee_geometry) 
+# etm7 = prep_etm7_ic(ee_geometry)
+# oli8 = prep_oli8_ic(ee_geometry) 
 
 # %%
 def prep_landsat_clouds(landsat_ic):
