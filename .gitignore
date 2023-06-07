@@ -2,3 +2,11 @@
 .Rproj.user
 sasia.Rproj
 src/test/pomegranate_testing.py
+src/prep/prep_lulc_classification.html
+spatial/unmod/training/Landuse_village_datapoints_15_01_2015.dbf
+spatial/unmod/training/Landuse_village_datapoints_15_01_2015.kml
+spatial/unmod/training/Landuse_village_datapoints_15_01_2015.prj
+spatial/unmod/training/Landuse_village_datapoints_15_01_2015.sbn
+spatial/unmod/training/Landuse_village_datapoints_15_01_2015.sbx
+spatial/unmod/training/Landuse_village_datapoints_15_01_2015.shp
+spatial/unmod/training/Landuse_village_datapoints_15_01_2015.shx
