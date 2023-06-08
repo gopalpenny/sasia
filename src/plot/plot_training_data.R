@@ -6,7 +6,7 @@
 library(tidyverse)
 library(sf)
 
-out_path <- ggp::fig_set_output("lulc_oli8")
+out_path <- ggp::fig_set_output("plot_training_data")
 
 # read in the data
 vi_cols <- c("NDVI", "MNDWI", "EVI", "GCVI", "MODCRC", 
@@ -78,13 +78,14 @@ lulc <- lulc %>%
 
 
 # %% Plot Training data for 2015-01-13
-ggplot(lulc %>% dplyr::filter(image_id == "2015-01-13", num_in_group > 10)) +
+p_ndvi_boxplot <- ggplot(lulc %>% dplyr::filter(image_id == "2015-01-13", num_in_group > 10)) +
     geom_boxplot(aes(crop, NDVI, color = mean_nir), outlier.shape = NA) +
     geom_point(aes(crop, NDVI, color = mean_nir),
         size = 2,
         position = position_jitter(), alpha = 0.5
     ) +
     theme(axis.text.x = element_text(angle = 45, hjust = 1))
+ggsave("crop_group_ndvi_boxplot.png",p_ndvi_boxplot, path = out_path, width = 6, height = 5)  
 
 p_NDVI_nir <- ggplot(mapping = aes(NDVI, nir, color = crop, shape = crop)) +
     geom_point(data = lulc %>% dplyr::filter(image_id == "2015-01-13", num_in_group > 10)) +
@@ -93,6 +94,7 @@ p_NDVI_nir <- ggplot(mapping = aes(NDVI, nir, color = crop, shape = crop)) +
         size = 3, stroke = 2
     ) +
     scale_shape_manual(values = rep(c(0:5), 4))
+ggsave("crop_group_ndvi_nir.png",p_NDVI_nir, path = out_path, width = 6, height = 5)
 
 p_NDVI_MNDWI <- ggplot(mapping = aes(NDVI, MNDWI, color = crop, shape = crop)) +
     geom_point(data = lulc %>% dplyr::filter(image_id == "2015-01-13", num_in_group > 10)) +
@@ -101,6 +103,7 @@ p_NDVI_MNDWI <- ggplot(mapping = aes(NDVI, MNDWI, color = crop, shape = crop)) +
         size = 3, stroke = 2
     ) +
     scale_shape_manual(values = rep(c(0:5), 4))
+ggsave("crop_group_ndvi_mndwi.png",p_NDVI_MNDWI, path = out_path, width = 6, height = 5)
 
 
 # ggplot(lulc %>% dplyr::filter(image_id == "2015-01-13")) +
@@ -116,12 +119,12 @@ p_NDVI_MNDWI <- ggplot(mapping = aes(NDVI, MNDWI, color = crop, shape = crop)) +
 crops_selected <- lulc_crop_summary %>%
     dplyr::filter(n > 10) %>%
     pull(crop)
-ggplot(lulc %>% dplyr::filter(crop %in% crops_selected, NDVI > -0.2)) +
+p_crop_intraannual_ts <- ggplot(lulc %>% dplyr::filter(crop %in% crops_selected, NDVI > -0.2)) +
     geom_line(aes(image_id, NDVI, color = crop, group = id), alpha = 0.1) +
     stat_smooth(aes(image_id, NDVI, color = crop), se = FALSE, span = 0.05)+
     scale_x_date(date_breaks = "1 month", date_labels = "%b %Y")# +
     # theme(axis.text.x = element_text(angle = 15, hjust = 1))
-
+ggsave("crop_group_ts_intraannual.png",p_crop_intraannual_ts, path = out_path, width = 12, height = 10)
 
 # lulc %>% dplyr::filter(crop %in% crops_selected, clouds_shadows == 1) %>% nrow()
 
@@ -131,25 +134,26 @@ ggplot(lulc %>% dplyr::filter(crop %in% crops_selected, NDVI > -0.2)) +
 #     as.matrix()
 
 
+
+# colors_all <- grDevices::colors()[grep('gr(a|e)y', grDevices::colors(), invert = T)]
+# crop_cols <- sample(colors_all, 15)
+# pie(rep(1, 15), col=crop_cols)
+
+
 lulc_vi <- lulc %>% 
     dplyr::filter(crop %in% crops_selected, NDVI > -0.2) %>% 
     ungroup() %>% 
     dplyr::select(all_of(c("id","image_id","crop",vi_cols))) %>%
     pivot_longer(cols = vi_cols, names_to = "vi", values_to = "value")
 
-colors_all <- grDevices::colors()[grep('gr(a|e)y', grDevices::colors(), invert = T)]
-crop_cols <- sample(colors_all, 15)
-
-# pie(rep(1, 15), col=crop_cols)
-
-
-ggplot(lulc_vi) +
+p_crop_group_veg_index <- ggplot(lulc_vi) +
     # geom_line(aes(image_id, NDVI, color = crop, group = id), alpha = 0.1) +
     stat_smooth(aes(image_id, value, color = crop), se = FALSE, span = 0.5)+
     scale_x_date(date_breaks = "1 month", date_labels = "%Y %b") +
     # scale_color_manual(values = crop_cols) +
     facet_wrap(~vi, scales = "free_y") +
     theme(axis.text.x = element_text(angle = 45, hjust = 1))
+ggsave("crop_group_veg_index.png",p_crop_group_veg_index, path = out_path, width = 12, height = 10)
 
 
 
@@ -165,34 +169,39 @@ p_palm <- ggplot(lulc_vi %>% dplyr::filter(crop == "Palm", vi == "NDVI")) +
     theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 
-p_plantation <- ggplot(lulc_vi %>% dplyr::filter(crop == "Plantation", vi == "NDVI")) +
-    # geom_line(aes(image_id, NDVI, color = crop, group = id), alpha = 0.1) +
-    geom_abline(intercept = 0.2, slope = 0, color = "black", alpha = 0.5) +
-    geom_point(aes(image_id, value, color = vi))+
-    stat_smooth(aes(image_id, value, color = vi), se = FALSE, span = 0.25)+
-    scale_x_date(date_breaks = "1 month", date_labels = "%Y %b") +
-    # scale_color_manual(values = crop_cols) +
-    ylim(c(0.1,0.4)) +
-    facet_wrap(~id) +
-    theme(axis.text.x = element_text(angle = 45, hjust = 1))
-p_plantation
+plot_crop_ts <- function(lulc_vi, crop_i) {
+    crop_i_name <- gsub("/", "_", crop_i)
+    crop_vi <- lulc_vi %>% dplyr::filter(crop == crop_i, vi == "NDVI", value > -0.1)
 
-p_plantation
-lulc_vi_veg_ids <- lulc_vi %>% dplyr::filter(grepl("Vegetable",crop), vi == "NDVI") %>%
-    pull(id) %>% unique()
-p_vegmil <- ggplot(lulc_vi %>% dplyr::filter(grepl("Vegetable",crop), vi == "NDVI") %>% sample_n(40)) +
-    # geom_line(aes(image_id, NDVI, color = crop, group = id), alpha = 0.1) +
-    geom_abline(intercept = 0.2, slope = 0, color = "black", alpha = 0.5) +
-    geom_point(aes(image_id, value, color = vi))+
-    stat_smooth(aes(image_id, value, color = vi), se = FALSE, span = 0.25)+
-    scale_x_date(date_breaks = "1 month", date_labels = "%Y %b") +
-    # scale_color_manual(values = crop_cols) +
-    ylim(c(0.1,0.4)) +
-    facet_wrap(~id) +
-    theme(axis.text.x = element_text(angle = 45, hjust = 1))
-p_vegmil
+    lulc_vi_crop_ids <- crop_vi %>% pull(id) %>% unique()
 
+    date_splits <- tibble(date = as.Date(c("2014-08-01", "2014-12-01", "2015-04-01")))
 
+    if (length(lulc_vi_crop_ids) > 30) {
+        crop_vi <- crop_vi %>% dplyr::filter(id %in% sample(lulc_vi_crop_ids,30))
+    }
+    p_crop <- ggplot(crop_vi) +
+        # geom_line(aes(image_id, NDVI, color = crop, group = id), alpha = 0.1) +
+        geom_abline(intercept = 0.2, slope = 0, color = "black", alpha = 0.5) +
+        geom_vline(data = date_splits, aes(xintercept = date), color = "black", linetype = "dashed", alpha = 0.75) + 
+        geom_point(aes(image_id, value, color = vi)) +
+        geom_line(aes(image_id, value, color = vi))+
+        # stat_smooth(aes(image_id, value, color = vi), se = FALSE, span = 0.25)+
+        scale_x_date(date_breaks = "1 month", date_labels = "%Y %b") +
+        # scale_color_manual(values = crop_cols) +
+        ylim(range(crop_vi$value)) +
+        facet_wrap(~id) +
+        ggtitle(paste(crop_i, min(c(30, length(lulc_vi_crop_ids))), "of",length(lulc_vi_crop_ids))) +
+        theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+    ggsave(paste0("crop_ts_",crop_i_name,".png"),p_crop, path = out_path, width = 12, height = 10)
+    return(p_crop)
+}
+
+for (crop_i in crops_selected) {
+    plot_crop_ts(lulc_vi, crop_i)
+}
+ 
 lulc_vi_millet_ids <- lulc_vi %>% dplyr::filter(grepl("illet",crop), vi == "NDVI") %>%
     pull(id) %>% unique()
 p_millet <- ggplot(lulc_vi %>% dplyr::filter(vi == "NDVI", id %in% sample(lulc_vi_millet_ids,40))) +
