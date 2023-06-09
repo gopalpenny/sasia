@@ -11,3 +11,8 @@ spatial/unmod/training/Landuse_village_datapoints_15_01_2015.sbx
 spatial/unmod/training/Landuse_village_datapoints_15_01_2015.shp
 spatial/unmod/training/Landuse_village_datapoints_15_01_2015.shx
 data/gdrive_gee_sasia
+spatial/unmod/training/training_pt_ids.cpg
+spatial/unmod/training/training_pt_ids.dbf
+spatial/unmod/training/training_pt_ids.prj
+spatial/unmod/training/training_pt_ids.shp
+spatial/unmod/training/training_pt_ids.shx
