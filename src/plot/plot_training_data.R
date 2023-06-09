@@ -9,8 +9,10 @@ library(sf)
 out_path <- ggp::fig_set_output("plot_training_data")
 
 # read in the data
-vi_cols <- c("NDVI", "MNDWI", "EVI", "GCVI", "MODCRC", 
-    "NBR1", "NBR2", "NDTI", "SAVI", "STI", "TVI")
+vi_cols <- c(
+    "NDVI", "MNDWI", "EVI", "GCVI", "MODCRC",
+    "NBR1", "NBR2", "NDTI", "SAVI", "STI", "TVI"
+)
 training_ts <- read_csv("./data/format/training_landsat_2014_2015.csv") %>%
     dplyr::filter(clouds_shadows == 0) %>%
     mutate(
@@ -85,7 +87,7 @@ p_ndvi_boxplot <- ggplot(lulc %>% dplyr::filter(image_id == "2015-01-13", num_in
         position = position_jitter(), alpha = 0.5
     ) +
     theme(axis.text.x = element_text(angle = 45, hjust = 1))
-ggsave("crop_group_ndvi_boxplot.png",p_ndvi_boxplot, path = out_path, width = 6, height = 5)  
+ggsave("crop_group_ndvi_boxplot.png", p_ndvi_boxplot, path = out_path, width = 6, height = 5)
 
 p_NDVI_nir <- ggplot(mapping = aes(NDVI, nir, color = crop, shape = crop)) +
     geom_point(data = lulc %>% dplyr::filter(image_id == "2015-01-13", num_in_group > 10)) +
@@ -94,7 +96,7 @@ p_NDVI_nir <- ggplot(mapping = aes(NDVI, nir, color = crop, shape = crop)) +
         size = 3, stroke = 2
     ) +
     scale_shape_manual(values = rep(c(0:5), 4))
-ggsave("crop_group_ndvi_nir.png",p_NDVI_nir, path = out_path, width = 6, height = 5)
+ggsave("crop_group_ndvi_nir.png", p_NDVI_nir, path = out_path, width = 6, height = 5)
 
 p_NDVI_MNDWI <- ggplot(mapping = aes(NDVI, MNDWI, color = crop, shape = crop)) +
     geom_point(data = lulc %>% dplyr::filter(image_id == "2015-01-13", num_in_group > 10)) +
@@ -103,7 +105,7 @@ p_NDVI_MNDWI <- ggplot(mapping = aes(NDVI, MNDWI, color = crop, shape = crop)) +
         size = 3, stroke = 2
     ) +
     scale_shape_manual(values = rep(c(0:5), 4))
-ggsave("crop_group_ndvi_mndwi.png",p_NDVI_MNDWI, path = out_path, width = 6, height = 5)
+ggsave("crop_group_ndvi_mndwi.png", p_NDVI_MNDWI, path = out_path, width = 6, height = 5)
 
 
 # ggplot(lulc %>% dplyr::filter(image_id == "2015-01-13")) +
@@ -113,7 +115,7 @@ ggsave("crop_group_ndvi_mndwi.png",p_NDVI_MNDWI, path = out_path, width = 6, hei
 
 # when **typing** text it gets formatted *like this\* as markdown.
 
-### 
+###
 # lulc %>% dplyr::filter(image_id == "2015-01-13", crop == "cabbage")
 
 crops_selected <- lulc_crop_summary %>%
@@ -121,10 +123,10 @@ crops_selected <- lulc_crop_summary %>%
     pull(crop)
 p_crop_intraannual_ts <- ggplot(lulc %>% dplyr::filter(crop %in% crops_selected, NDVI > -0.2)) +
     geom_line(aes(image_id, NDVI, color = crop, group = id), alpha = 0.1) +
-    stat_smooth(aes(image_id, NDVI, color = crop), se = FALSE, span = 0.05)+
-    scale_x_date(date_breaks = "1 month", date_labels = "%b %Y")# +
-    # theme(axis.text.x = element_text(angle = 15, hjust = 1))
-ggsave("crop_group_ts_intraannual.png",p_crop_intraannual_ts, path = out_path, width = 12, height = 10)
+    stat_smooth(aes(image_id, NDVI, color = crop), se = FALSE, span = 0.05) +
+    scale_x_date(date_breaks = "1 month", date_labels = "%b %Y") # +
+# theme(axis.text.x = element_text(angle = 15, hjust = 1))
+ggsave("crop_group_ts_intraannual.png", p_crop_intraannual_ts, path = out_path, width = 12, height = 10)
 
 # lulc %>% dplyr::filter(crop %in% crops_selected, clouds_shadows == 1) %>% nrow()
 
@@ -134,7 +136,10 @@ ggsave("crop_group_ts_intraannual.png",p_crop_intraannual_ts, path = out_path, w
 #     as.matrix()
 
 
-lulc_training_crops <- lulc %>% ungroup() %>% dplyr::select(all_of(c("id", "crop"))) 
+lulc_training_crops <- lulc %>%
+    ungroup() %>%
+    dplyr::select(all_of(c("id", "crop"))) %>%
+    distinct()
 write_csv(lulc_training_crops, "./data/format/lulc_training_crops.csv")
 
 lulc_ts <- lulc %>%
@@ -149,47 +154,49 @@ write_csv(lulc_ts, "./data/format/lulc_training_ts.csv")
 # pie(rep(1, 15), col=crop_cols)
 
 
-lulc_vi <- lulc %>% 
-    dplyr::filter(crop %in% crops_selected, NDVI > -0.2) %>% 
-    ungroup() %>% 
-    dplyr::select(all_of(c("id","image_id","crop",vi_cols))) %>%
+lulc_vi <- lulc %>%
+    dplyr::filter(crop %in% crops_selected, NDVI > -0.2) %>%
+    ungroup() %>%
+    dplyr::select(all_of(c("id", "image_id", "crop", vi_cols))) %>%
     pivot_longer(cols = vi_cols, names_to = "vi", values_to = "value")
 
 p_crop_group_veg_index <- ggplot(lulc_vi) +
     # geom_line(aes(image_id, NDVI, color = crop, group = id), alpha = 0.1) +
-    stat_smooth(aes(image_id, value, color = crop), se = FALSE, span = 0.5)+
+    stat_smooth(aes(image_id, value, color = crop), se = FALSE, span = 0.5) +
     scale_x_date(date_breaks = "1 month", date_labels = "%Y %b") +
     # scale_color_manual(values = crop_cols) +
     facet_wrap(~vi, scales = "free_y") +
     theme(axis.text.x = element_text(angle = 45, hjust = 1))
-ggsave("crop_group_veg_index.png",p_crop_group_veg_index, path = out_path, width = 12, height = 10)
+ggsave("crop_group_veg_index.png", p_crop_group_veg_index, path = out_path, width = 12, height = 10)
 
 plot_crop_ts <- function(lulc_vi, crop_i) {
     crop_i_name <- gsub("/", "_", crop_i)
     crop_vi <- lulc_vi %>% dplyr::filter(crop == crop_i, vi == "NDVI", value > -0.1)
 
-    lulc_vi_crop_ids <- crop_vi %>% pull(id) %>% unique()
+    lulc_vi_crop_ids <- crop_vi %>%
+        pull(id) %>%
+        unique()
 
     date_splits <- tibble(date = as.Date(c("2014-08-01", "2014-12-01", "2015-04-01")))
 
     if (length(lulc_vi_crop_ids) > 30) {
-        crop_vi <- crop_vi %>% dplyr::filter(id %in% sample(lulc_vi_crop_ids,30))
+        crop_vi <- crop_vi %>% dplyr::filter(id %in% sample(lulc_vi_crop_ids, 30))
     }
     p_crop <- ggplot(crop_vi) +
         # geom_line(aes(image_id, NDVI, color = crop, group = id), alpha = 0.1) +
         geom_abline(intercept = 0.2, slope = 0, color = "black", alpha = 0.5) +
-        geom_vline(data = date_splits, aes(xintercept = date), color = "black", linetype = "dashed", alpha = 0.75) + 
+        geom_vline(data = date_splits, aes(xintercept = date), color = "black", linetype = "dashed", alpha = 0.75) +
         geom_point(aes(image_id, value, color = vi)) +
-        geom_line(aes(image_id, value, color = vi))+
+        geom_line(aes(image_id, value, color = vi)) +
         # stat_smooth(aes(image_id, value, color = vi), se = FALSE, span = 0.25)+
         scale_x_date(date_breaks = "3 months", date_labels = "%Y %b") +
         # scale_color_manual(values = crop_cols) +
         ylim(range(crop_vi$value)) +
         facet_wrap(~id) +
-        ggtitle(paste(crop_i, min(c(30, length(lulc_vi_crop_ids))), "of",length(lulc_vi_crop_ids))) +
+        ggtitle(paste(crop_i, min(c(30, length(lulc_vi_crop_ids))), "of", length(lulc_vi_crop_ids))) +
         theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
-    ggsave(paste0("crop_ts_",crop_i_name,".png"),p_crop, path = out_path, width = 12, height = 10)
+    ggsave(paste0("crop_ts_", crop_i_name, ".png"), p_crop, path = out_path, width = 12, height = 10)
     return(p_crop)
 }
 
@@ -200,7 +207,7 @@ for (crop_i in crops_selected) {
 
 ####################################################################################
 ####################################################################################
-#################################################################################### 
+####################################################################################
 
 library(MASS)
 library(patchwork)
