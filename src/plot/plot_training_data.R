@@ -134,6 +134,9 @@ ggsave("crop_group_ts_intraannual.png",p_crop_intraannual_ts, path = out_path, w
 #     as.matrix()
 
 
+lulc_training_crops <- lulc %>% ungroup() %>% dplyr::select(all_of(c("id", "crop"))) 
+write_csv(lulc_training_crops, "./data/format/lulc_training_crops.csv")
+
 lulc_ts <- lulc %>%
     dplyr::filter(crop %in% crops_selected, NDVI > -0.2) %>%
     rename(date = image_id)
