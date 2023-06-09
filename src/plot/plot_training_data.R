@@ -19,9 +19,9 @@ training_ts <- read_csv("./data/format/training_landsat_2014_2015.csv") %>%
         EVI = 2.5 * (nir - red) / (nir + 6 * red - 7 * blue + 1),
         GCVI = (nir / green) - 1,
         MODCRC = (swir1 - green) / (swir1 + green),
-        NBR1 = (nir - swir1) / (nir + swir1),
+        NBR1 = (nir - swir1) / (nir + swir1), # Also NDMI: https://www.usgs.gov/landsat-missions/normalized-difference-moisture-index
         NBR2 = (nir - swir2) / (nir + swir2),
-        NDTI = (swir1 - swir2) / (swir1 + swir2),
+        NDTI = (swir1 - swir2) / (swir1 + swir2), # for an example: https://www.mdpi.com/2072-4292/8/8/660
         SAVI = (nir - red) / (nir + red + 0.16),
         STI = swir1 / swir2,
         TVI = 60 * (nir - green) - 100 * (red - green)
@@ -134,6 +134,12 @@ ggsave("crop_group_ts_intraannual.png",p_crop_intraannual_ts, path = out_path, w
 #     as.matrix()
 
 
+lulc_ts <- lulc %>%
+    dplyr::filter(crop %in% crops_selected, NDVI > -0.2) %>%
+    rename(date = image_id)
+
+write_csv(lulc_ts, "./data/format/lulc_training_ts.csv")
+
 
 # colors_all <- grDevices::colors()[grep('gr(a|e)y', grDevices::colors(), invert = T)]
 # crop_cols <- sample(colors_all, 15)
@@ -155,20 +161,6 @@ p_crop_group_veg_index <- ggplot(lulc_vi) +
     theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ggsave("crop_group_veg_index.png",p_crop_group_veg_index, path = out_path, width = 12, height = 10)
 
-
-
-p_palm <- ggplot(lulc_vi %>% dplyr::filter(crop == "Palm", vi == "NDVI")) +
-    # geom_line(aes(image_id, NDVI, color = crop, group = id), alpha = 0.1) +
-    geom_abline(intercept = 0.2, slope = 0, color = "black", alpha = 0.5) +
-    geom_point(aes(image_id, value, color = vi))+
-    stat_smooth(aes(image_id, value, color = vi), se = FALSE, span = 0.25)+
-    scale_x_date(date_breaks = "1 month", date_labels = "%Y %b") +
-    # scale_color_manual(values = crop_cols) +
-    ylim(c(0.1,0.4)) +
-    facet_wrap(~id) +
-    theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-
 plot_crop_ts <- function(lulc_vi, crop_i) {
     crop_i_name <- gsub("/", "_", crop_i)
     crop_vi <- lulc_vi %>% dplyr::filter(crop == crop_i, vi == "NDVI", value > -0.1)
@@ -187,7 +179,7 @@ plot_crop_ts <- function(lulc_vi, crop_i) {
         geom_point(aes(image_id, value, color = vi)) +
         geom_line(aes(image_id, value, color = vi))+
         # stat_smooth(aes(image_id, value, color = vi), se = FALSE, span = 0.25)+
-        scale_x_date(date_breaks = "1 month", date_labels = "%Y %b") +
+        scale_x_date(date_breaks = "3 months", date_labels = "%Y %b") +
         # scale_color_manual(values = crop_cols) +
         ylim(range(crop_vi$value)) +
         facet_wrap(~id) +
@@ -201,20 +193,8 @@ plot_crop_ts <- function(lulc_vi, crop_i) {
 for (crop_i in crops_selected) {
     plot_crop_ts(lulc_vi, crop_i)
 }
- 
-lulc_vi_millet_ids <- lulc_vi %>% dplyr::filter(grepl("illet",crop), vi == "NDVI") %>%
-    pull(id) %>% unique()
-p_millet <- ggplot(lulc_vi %>% dplyr::filter(vi == "NDVI", id %in% sample(lulc_vi_millet_ids,40))) +
-    # geom_line(aes(image_id, NDVI, color = crop, group = id), alpha = 0.1) +
-    geom_abline(intercept = 0.2, slope = 0, color = "black", alpha = 0.5) +
-    geom_point(aes(image_id, value, color = vi))+
-    stat_smooth(aes(image_id, value, color = vi), se = FALSE, span = 0.25)+
-    scale_x_date(date_breaks = "1 month", date_labels = "%Y %b") +
-    # scale_color_manual(values = crop_cols) +
-    ylim(c(0.1,0.4)) +
-    facet_wrap(~id) +
-    theme(axis.text.x = element_text(angle = 45, hjust = 1))
-ggsave("crop_ts_millet.png",p_millet, path = out_path, width = 12, height = 10)
+
+
 ####################################################################################
 ####################################################################################
 #################################################################################### 
