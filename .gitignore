@@ -18,3 +18,4 @@ spatial/unmod/training/training_pt_ids.shp
 spatial/unmod/training/training_pt_ids.shx
 data/format/lulc_training_ts.csv
 .DS_Store
+sasia_gee.code-workspace
